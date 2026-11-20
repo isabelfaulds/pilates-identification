@@ -28,6 +28,9 @@ The package versions are recorded in both the lock file and each run's summary.
 # All videos in data/raw/ and its subfolders:
 .venv/bin/python tools/pose/extract.py
 
+# Combine all completed sequences into one frame-level table:
+.venv/bin/python tools/pose/combine.py
+
 # Use a different input folder, with no catalog required:
 .venv/bin/python tools/pose/extract.py --input-dir /path/to/videos
 
@@ -66,7 +69,16 @@ Each video gets `data/processed/landmarks/<video_id>/`:
 | `summary.json` | Provenance, parameters, detection/visibility rates, missing intervals |
 | `preview.jpg` | Six frames spread across the video, with confident body landmarks drawn |
 
-`frames.csv` is already an intermediate CSV. A final combined, labeled training
+`python tools/pose/combine.py` writes `data/processed/landmarks.csv`: one combined
+frame-level CSV containing all completed per-video outputs. It adds `video_name`
+(the source filename), retaining `exercise_name`, `video_id`, frame indices,
+timestamps, and all landmark columns. Rows are grouped by video and chronological
+within each video; timestamps restart for each sequence. It preserves missing
+values and verifies schemas, identities, frame counts, and order before replacing
+the combined file. Rerun this command after extracting more videos. It includes
+all completed outputs, regardless of the CSV download-selection flags.
+
+This combined table is still an intermediate CSV. A final labeled training
 CSV belongs in `data/processed/features/` once usable intervals, class labels,
 and engineered features are agreed on. Temporal windows will belong in
 `data/processed/windows/`. This stage does not merge all frames into a final

@@ -49,8 +49,11 @@ See [setup, data schema, and modeling notes](docs/pose-pipeline.md).
 
 ```sh
 .venv/bin/python tools/pose/extract.py
+.venv/bin/python tools/pose/combine.py
 ```
 
 Processes every supported video under `data/raw/`, including subfolders, and
 saves per-video results to `data/processed/landmarks/<video_id>/`. The extractor
 also works with uncataloged videos. See [data folder layout](data/README.md).
+The second command combines completed sequences into `data/processed/landmarks.csv`
+with a `video_name` column, preserving each video's frame order and timestamps.
