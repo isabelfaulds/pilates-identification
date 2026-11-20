@@ -32,7 +32,7 @@ async function main() {
     if (url.origin !== 'https://www.lagreeod.com' || !/^\/exercises\/[A-Za-z0-9]+$/.test(url.pathname)) {
       throw new Error('Expected a Lagree exercise URL');
     }
-    const out = path.resolve(projectRoot, video.folder || 'training_data', filename(video.name));
+    const out = path.resolve(projectRoot, video.folder || 'data/raw', filename(video.name));
     if (destinations.has(out)) throw new Error(`Duplicate destination: ${out}`);
     destinations.add(out);
     if (listOnly) { console.log(`${video.name} -> ${path.relative(projectRoot, out)}`); continue; }

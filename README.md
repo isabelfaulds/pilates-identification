@@ -27,7 +27,7 @@ node tools/lagree/download.cjs --list
 node tools/lagree/download.cjs
 ```
 
-Videos save to `training_data/` with lowercase names and underscores. Existing
+Videos save to `data/raw/` with lowercase names and underscores. Existing
 files are skipped; use `--force` to replace them. Download only videos you have
 permission to save.
 
@@ -39,3 +39,21 @@ node tools/lagree/catalog.cjs
 
 Refreshes the catalog while preserving training selections by exercise ID.
 See `tools/lagree/README.md` for details.
+
+## Extract pose landmarks
+
+The Python pipeline preserves per-frame timestamps and all 33 MediaPipe pose
+landmarks, including missing detections and confidence masks. It exports CSV,
+ordered NumPy arrays, quality statistics, and a skeleton preview for each video.
+See [setup, data schema, and modeling notes](docs/pose-pipeline.md).
+
+```sh
+.venv/bin/python tools/pose/extract.py
+.venv/bin/python tools/pose/combine.py
+```
+
+Processes every supported video under `data/raw/`, including subfolders, and
+saves per-video results to `data/processed/landmarks/<video_id>/`. The extractor
+also works with uncataloged videos. See [data folder layout](data/README.md).
+The second command combines completed sequences into `data/processed/landmarks.csv`
+with a `video_name` column, preserving each video's frame order and timestamps.
