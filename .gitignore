@@ -6,3 +6,14 @@ training_data/
 downloads/
 *.part
 .DS_Store
+.venv/
+__pycache__/
+models/*.task
+*.keras
+*.h5
+*.npz
+data/landmarks/
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep

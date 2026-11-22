@@ -1,0 +1,40 @@
+{
+  "classes": [
+    "Bear",
+    "Elevator lunge",
+    "Plank to pike",
+    "Spider kick",
+    "Standing inner thigh",
+    "Standing outer thigh"
+  ],
+  "window_seconds": 2.0,
+  "fps": 30,
+  "input_shape": [
+    60,
+    108
+  ],
+  "seed": 42,
+  "noise_sigma_world_units": 0.005,
+  "training_augmentation": false,
+  "trim_start_seconds": 10.0,
+  "trim_end_seconds": 5.0,
+  "split_guard_seconds": 1.5,
+  "minimum_valid_angle_fraction": 0.5,
+  "minimum_training_windows_per_video": "max(2, min(10, floor(candidate_count/3)))",
+  "temporal_parameters": {
+    "lag_seconds": [
+      0.1,
+      0.5,
+      1.0
+    ],
+    "mean_seconds": [
+      0.5,
+      1.0
+    ],
+    "mean_lag_seconds": 0.5,
+    "max_gap_seconds": 0.1,
+    "lag_tolerance_seconds": 0.05
+  },
+  "tensorflow_version": "2.21.0",
+  "input_sha256": "bdf36963c4ee7cb64648f4605f7c2c4d59a2256f15387a1684c47e726f5f72f7"
+}
