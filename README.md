@@ -57,3 +57,26 @@ saves per-video results to `data/processed/landmarks/<video_id>/`. The extractor
 also works with uncataloged videos. See [data folder layout](data/README.md).
 The second command combines completed sequences into `data/processed/landmarks.csv`
 with a `video_name` column, preserving each video's frame order and timestamps.
+
+## Joint-angle features
+
+```sh
+.venv/bin/python tools/pose/features.py
+```
+
+Reads the combined landmark CSV and writes `data/processed/features/frames.csv`.
+Adds left/right elbow, knee, and hip angles, timestamp-based lags, trailing
+averages, lagged averages, and angle changes per second, each with a validity flag. Original columns, frame order, and missing detections are retained.
+See [angle definitions and missing-data handling](docs/pose-pipeline.md#joint-angle-features).
+
+## Classify two-second snippets
+
+```sh
+.venv/bin/python -m pip install -r requirements-training.txt
+.venv/bin/python tools/pose/train_lstm.py --output data/processed/experiments/my_run
+```
+
+A six-class LSTM pilot uses 60-frame windows with training-only scaling and
+protected same-recording test chunks. See [training, paired noisy tests, saved
+model prediction and limitations](docs/pose-classification.md). The completed
+revised run is local at `data/processed/experiments/lstm_pilot_v2/`.

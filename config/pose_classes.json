@@ -1,0 +1,14 @@
+{
+  "classes": ["Bear", "Elevator lunge", "Plank to pike", "Spider kick", "Standing inner thigh", "Standing outer thigh"],
+  "exercise_to_class": {
+    "Bear": "Bear",
+    "Reverse bear": "Bear",
+    "Elevator lunge": "Elevator lunge",
+    "Plank to pike": "Plank to pike",
+    "Plank to pike 2": "Plank to pike",
+    "Reverse plank to pike": "Plank to pike",
+    "Spider kick right": "Spider kick",
+    "Standing inner thigh": "Standing inner thigh",
+    "Standing outer thigh": "Standing outer thigh"
+  }
+}

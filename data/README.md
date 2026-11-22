@@ -9,7 +9,9 @@ data/
       sequence.npz             Ordered arrays, timestamps, confidence masks
       summary.json             Provenance and quality statistics
       preview.jpg              Visual review sheet
-    features/                  Future engineered features and final labeled CSV
+    features/
+      frames.csv               Landmarks, angles, lags, means, angle velocities and flags
+      frames.summary.json      Feature definitions, provenance, and valid counts
     windows/                   Future temporal model inputs
 ```
 
@@ -24,3 +26,5 @@ which local videos get processed.
 Keep per-video landmarks as the reproducible intermediate stage. A final
 training CSV can be built later after interval annotation, feature engineering,
 and video/person-level dataset splitting.
+
+Run `python tools/pose/features.py` after combining landmarks to derive the angle features. This remains an intermediate table until exercise intervals and target labels are reviewed.

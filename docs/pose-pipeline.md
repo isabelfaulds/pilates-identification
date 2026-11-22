@@ -153,9 +153,10 @@ visually checked; this pipeline processes the decoded pixel orientation.
 5. Fit any scalers/imputers using training data only. Preserve missing masks;
    don't fill long gaps and pretend they are observed movement.
 
-We currently have only one downloaded source video, despite nine selections.
-That can validate extraction but cannot establish a multi-class recognition model
-or generalization to unseen instructors/camera angles.
+All nine selected source videos have been downloaded and processed, producing
+17,785 frame rows. A preliminary classifier uses held-out sections of these same
+recordings; this does not establish generalization to unseen instructors or
+camera angles. See [the classification pilot](pose-classification.md).
 
 ## Next: features and temporal windows
 
@@ -195,3 +196,104 @@ speeds; don't shuffle frames before constructing sequences or windows.
   were not accessible here, so this is not presented as a reproduction.
 - [Google Pose Landmarker documentation](https://developers.google.com/edge/mediapipe/solutions/vision/pose_landmarker?tab=Python):
   output definitions, VIDEO mode, confidence settings, and pretrained model source.
+
+## Joint-angle features
+
+```sh
+.venv/bin/python tools/pose/features.py
+```
+
+This separate step reads `data/processed/landmarks.csv` and writes
+`data/processed/features/frames.csv` plus `frames.summary.json`. It does not run
+MediaPipe again or modify raw landmarks. `--input`, `--output`, and `--confidence`
+can override the defaults.
+
+Six angles are added, with `_deg` values and matching `_valid` flags:
+
+| Angle | Joint order (left and right separately) |
+| --- | --- |
+| Elbow | Shoulder - elbow - wrist |
+| Knee | Hip - knee - ankle |
+| Hip | Shoulder - hip - knee |
+
+Angles use MediaPipe's estimated 3D **world** XYZ coordinates, not mixed normalized
+image coordinates. The middle joint is the vertex. The calculation uses the dot
+product of the two limb vectors, clipped before arccos, and returns degrees in
+[0,180]. A straight joint is 180 degrees. These are geometric joint angles, not
+validated clinical flexion measurements.
+
+Every contributing joint must have finite world coordinates and image/world
+visibility and presence scores at least 0.5 by default. A missing pose, low
+confidence, or zero-length limb produces a blank angle and `_valid = 0`; raw values
+and rows remain unchanged. No interpolation or scaling is fitted. Confidence is
+not a guarantee that an estimated landmark is correct.
+
+The output retains `video_id`, `video_name`, `exercise_name`, `frame_index`,
+`timestamp_s`, and all original landmark columns. Temporal features use timestamps within each video and, when supplied, its
+`segment_id`. Their definitions and reset rules are listed below.
+The summary records feature definitions, source SHA-256, threshold, counts, and
+validity fractions.
+
+### Lag and trailing-average features
+
+The feature step also adds the following for each of the six angles:
+
+- Angle at 0.1, 0.5, and 1 second before the current frame.
+- Trailing arithmetic mean over 0.5 and 1 second, including the current frame.
+- Each of those means as it was 0.5 seconds earlier.
+
+Every value has a validity flag. Names include the time interval, for example
+`left_elbow_angle_lag_0p5s_deg`, `left_elbow_angle_mean_1s_deg`, and
+`left_elbow_angle_mean_1s_lag_0p5s_deg`.
+
+Lags use the latest sample at or before their target timestamp, with a maximum
+age relative to that target of 0.05 seconds. They never select a later sample,
+interpolate, or search into the future. Means require a full valid history over
+the requested duration; they are sample means rather than time-weighted means.
+Lagged means use the mean calculated at the past timestamp, not a mean containing
+current or future data.
+
+History is separate for each video. A `segment_id` change or a frame gap over
+0.1 seconds resets all histories for that video. An invalid angle resets that
+angle's history, so neither lags nor means bridge its missing detections. These
+conservative rules leave some feature values blank. History before a manually
+identified camera cut or exercise transition must also be reset using segments;
+this step does not detect cuts automatically.
+
+CLI options: `--lag-seconds`, `--mean-seconds`, `--mean-lag-seconds`,
+`--max-gap-seconds`, and `--lag-tolerance-seconds`. For intentionally sparse
+sampling, adjust the gap and tolerance to the sampling interval. Do not increase
+them merely to hide missing detections.
+
+The default output retains all original fields and has 447 columns: 339 source
+columns, six angles and six flags, plus 48 temporal values and 48 flags. The
+summary records the configuration and valid-value counts.
+
+For a standalone three-second input clip, compute features with history starting
+at that clip boundary, or supply the same extra history during training and
+inference. The longest default feature needs 1.5 seconds to warm up. Do not train
+on features using pre-clip context and then expect identical features from only
+an isolated three-second clip. Lag/mean features are optional candidates, not
+proven improvements; compare angles alone, angles plus lags, and angles plus
+lags/means using the same video-level splits.
+
+### Angle change per second
+
+Each angle also has a signed backward-difference feature, for example
+`left_elbow_angle_velocity_deg_per_s`, and a matching
+`left_elbow_angle_velocity_valid` flag:
+
+```text
+angle change per second = (angle_now - angle_previous) / (time_now - time_previous)
+```
+
+The calculation uses actual timestamps, not an assumed frame rate. Positive
+values mean the interior angle is increasing; negative values mean it is
+decreasing. Zero is a valid rate for an unchanged angle. These signs describe
+the defined geometric angle, not a clinical diagnosis of movement direction.
+
+Both current and previous angles must be valid. The first frame of a video or
+segment, a frame following an invalid angle, and a frame after a gap exceeding
+the configured maximum have a blank velocity and validity 0. No future frames
+are used. Differencing can amplify estimation jitter, so compare these features
+with and without the trailing averages during validation.

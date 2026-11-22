@@ -9,6 +9,9 @@ downloads/
 .venv/
 __pycache__/
 models/*.task
+*.keras
+*.h5
+*.npz
 data/landmarks/
 data/raw/*
 !data/raw/.gitkeep
